@@ -9,7 +9,7 @@ def stats(df):
 
     dfMissing=((df.isna().sum()/len(df))*100).to_frame('%ofMissingValues')
 
-    num_columns = df.select_dtypes(exclude=['object']).columns
+    num_columns = df.select_dtypes(exclude=['object', 'datetime64[ns]']).columns
     cat_columns = df.select_dtypes(['object']).columns
 
     dfNonZero=df[num_columns].apply(lambda x: 100 * ((x > 0) & (x.notnull())).mean()).to_frame("%ofNonZeroValues")
