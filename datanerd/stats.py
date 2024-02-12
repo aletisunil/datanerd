@@ -9,7 +9,7 @@ def stats(df):
 
     dfMissing=((df.isna().sum()/len(df))*100).to_frame('%ofMissingValues')
 
-    num_columns = df.select_dtypes(exclude=['object', 'datetime64[ns]']).columns
+    num_columns = df.select_dtypes(exclude=['object', 'datetime64[ns]','timedelta64[ns]']).columns
     cat_columns = df.select_dtypes(['object']).columns
 
     dfNonZero=df[num_columns].apply(lambda x: 100 * ((x > 0) & (x.notnull())).mean()).to_frame("%ofNonZeroValues")
@@ -17,6 +17,6 @@ def stats(df):
     dfUnique=df.apply(lambda x: x.nunique(dropna=False), axis=0).to_frame("#ofUniqueValues")
 
 
-    FinalDF=pd.concat([df_stats,dfMissing,dfNonZero,dfUnique],ignore_index=False,axis=1)
+    stats=pd.concat([df_stats,dfMissing,dfNonZero,dfUnique],ignore_index=False,axis=1)
 
-    return FinalDF
+    return stats
