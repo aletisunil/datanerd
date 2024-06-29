@@ -1,87 +1,132 @@
-stats(), iv_woe(), pushdb()
+# DataNerd
 
-This function provides some statistical summary of a given dataframe.
+This package provides various functions for data analysis, statistical calculations, database operations, and sending notifications.
 
-The **stats()** function takes in a dataframe and returns the following statistics:
+## Installation
 
+To use these functions, you need to have Python installed on your system. You also need to install the required libraries. You can install them using pip:
+
+```
+pip install pandas numpy sqlalchemy requests
+```
+
+## Functions
+
+### 1. stats()
+
+This function provides statistical summary of a given dataframe.
+
+#### Parameters:
+- `df` (pandas.DataFrame): The input dataframe
+
+#### Returns:
+- A dataframe containing various statistics for each column
+
+#### Statistics provided:
 - count
 - mean
 - std
 - min
-- 10th percentile
-- 20th percentile
-- 25th percentile
-- 30th percentile
-- 40th percentile
-- 50th percentile (median)
-- 60th percentile
-- 70th percentile
-- 75th percentile
-- 80th percentile
-- 90th percentile
-- 95th percentile
-- 99th percentile
+- 10th, 20th, 25th, 30th, 40th, 50th (median), 60th, 70th, 75th, 80th, 90th, 95th, 99th percentiles
 - max
 - % of missing values
-- % of non-zero values
-- #numberofunique_values
+- number of unique values
+
+#### Usage:
 
 ```python
 import pandas as pd
 import datanerd as dn
 
 df = pd.read_csv('titanic.csv')
-dn.stats(df)
+summary_stats = dn.stats(df)
 ```
 
-The **iv_woe()** function is used to calculate the Weight of Evidence (WoE) and Information Value (IV) for a given dataframe. 
+### 2. iv_woe()
 
-The WoE is a measure of how much the presence or absence of a predictor (feature) contributes to the probability of target. 
+This function calculates the Weight of Evidence (WoE) and Information Value (IV) for a given dataframe.
 
-The IV is a measure of the strength of the relationship between the predictor and the target.
+#### Parameters:
+- `data` (pandas.DataFrame): The input dataframe
+- `target` (str): The name of the target variable
+- `bins` (int): The number of bins to use for discretizing continuous variables
+- `optimize` (bool): Whether to optimize the binning of continuous variables
+- `threshold` (float): The minimum percentage of non-events in each bin for optimization
 
-The **iv_woe()** function takes in the following arguments:
+#### Returns:
+- A tuple containing two dataframes: (iv, woe)
 
-**data:** a dataframe containing the predictor variables and the target variable
-
-**target:** the name of the target variable
-
-**bins:** the number of bins to use for discretizing continuous variables
-
-**optimize:** a boolean indicating whether to optimize the binning of the continuous variables
-
-**thresold:** the minimum percentage of non-events (negative outcome) in each bin for optimization. If optimize is set to True, the function will iterate over the number of bins from 20 to 1 and calculate the WoE and IV for each bin. If the percentage of non-events in each bin is greater than or equal to the specified thresold, it will return the WoE and IV for that bin. If it cannot find a binning that meets the thresold, it will return the WoE and IV for the best bin it could find.
-
-If optimize is set to False, the function will calculate the WoE and IV for the specified number of bins.
-
-The function returns a dataframe containing the WoE and IV for each predictor variable.
+#### Usage:
 
 ```python
 import pandas as pd
 import datanerd as dn
 
 df = pd.read_csv('cancer.csv')
-iv,woe = dn.iv_woe(data=df,target='Diagnosis',bins=20,optimize=True,thresold=True)
+iv, woe = dn.iv_woe(data=df, target='Diagnosis', bins=20, optimize=True, threshold=0.05)
 ```
 
-This **pushdb()** function takes Pandas dataframe (**`data`**), a table name (**`tablename`**), a server name (**`server`**), a database name (**`database`**), and a schema name (**`schema`**)
+### 3. pushdb()
 
-It then creates a connection to a Microsoft SQL Server database using these input parameters, and pushes the **`data`** i.e dataframe to the specified table in the database. The function is written to handle a fast execution of many records using the **`fast_executemany`** argument in the **`create_engine`** function.
+This function pushes a Pandas dataframe to a Microsoft SQL Server database.
+
+#### Parameters:
+- `data` (pandas.DataFrame): The dataframe to be pushed
+- `tablename` (str): The name of the table in the database
+- `server` (str): The name of the SQL Server
+- `database` (str): The name of the database
+- `schema` (str): The name of the schema
+
+#### Usage:
 
 ```python
 import pandas as pd
 import datanerd as dn
 
 df = pd.read_csv('day.csv')
-dn.pushdb(df, tablename='day', server='SQL-DW', database='schedule', schema='ana')
+dn.pushdb(df, tablename='day', server='SQL', database='schedule', schema='analysis')
 ```
 
-This will push the data i.e dataframe to the **day** table in the **schedule** database on the **SQL-DW** server, using the **ana** schema.
+### 4. teams_webhook()
+
+This function sends a formatted message to a Microsoft Teams channel using a webhook URL.
+
+#### Parameters:
+- `webhook_url` (str): The webhook URL for the Teams channel
+- `title` (str): The title of the message
+- `message` (str): The body of the message
+
+#### Usage:
+
+```python
+import datanerd as dn
+
+webhook_url = "https://outlook.office.com/webhook/..."
+title = "Important Notification"
+message = "This is a test message sent from Python!"
+
+dn.teams_webhook(webhook_url, title, message)
+```
+
+### 5. ntfy()
+
+This function sends a notification message to an ntfy.sh server.
+
+#### Parameters:
+- `server` (str): The name of the ntfy.sh server/topic to send the message to
+- `message` (str): The message to be sent
 
 
+#### Usage:
 
+```python
+import datanerd as dn
 
+server = "your_server_name"
+message = "This is a test notification from Python!"
 
+dn.ntfy(server, message)
+```
 
 
 
