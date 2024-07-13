@@ -2,7 +2,7 @@ import pandas as pd
 import sqlalchemy as sa
 from typing import Union
 
-def pushdb(data: pd.DataFrame, tablename: str, server: str, database: str, schema: str) -> None:
+def pushdb(data: pd.DataFrame, tablename: str, server: str, database: str, schema: str, if_exists: str = 'fail') -> None:
     """
     Push a pandas DataFrame to a SQL Server database table.
 
@@ -15,6 +15,10 @@ def pushdb(data: pd.DataFrame, tablename: str, server: str, database: str, schem
         server (str): The name or IP address of the SQL Server.
         database (str): The name of the database on the SQL Server.
         schema (str): The schema name in the database where the table is located.
+        if_exists (str): 
+            'fail' (default): Raise a ValueError if the table already exists.
+            'replace': Drop the table before inserting new values.
+            'append': Insert new values to the existing table.
 
     Returns:
         None
@@ -26,7 +30,7 @@ def pushdb(data: pd.DataFrame, tablename: str, server: str, database: str, schem
 
     Example:
         >>> df = pd.DataFrame({'column1': [1, 2, 3], 'column2': ['a', 'b', 'c']})
-        >>> pushdb(df, 'my_table', 'my_server', 'my_database', 'dbo')
+        >>> pushdb(df, 'my_table', 'my_server', 'my_database', 'dbo','replace')
     """
     # Input validation
     if data.empty:
@@ -44,7 +48,7 @@ def pushdb(data: pd.DataFrame, tablename: str, server: str, database: str, schem
     engine = sa.create_engine(connection_url, fast_executemany=True)
 
     try:
-        data.to_sql(tablename, engine, schema=schema, if_exists="fail", index=False)
+        data.to_sql(tablename, engine, schema=schema, if_exists=if_exists, index=False)
     except sa.exc.SQLAlchemyError as e:
         raise sa.exc.SQLAlchemyError(f"Error pushing data to the database: {str(e)}")
     finally:
