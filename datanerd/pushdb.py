@@ -1,6 +1,7 @@
 import pandas as pd
 import sqlalchemy as sa
-from typing import Union
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
 
 def pushdb(data: pd.DataFrame, tablename: str, server: str, database: str, schema: str, if_exists: str = 'fail') -> None:
     """
@@ -24,13 +25,12 @@ def pushdb(data: pd.DataFrame, tablename: str, server: str, database: str, schem
         None
 
     Raises:
-        sqlalchemy.exc.SQLAlchemyError: If there's an error in creating the engine or executing the SQL.
-        pyodbc.Error: If there's an error in the ODBC connection.
+        SQLAlchemyError: If there's an error in creating the engine or executing the SQL.
         ValueError: If the DataFrame is empty or if any of the string parameters are empty.
 
     Example:
         >>> df = pd.DataFrame({'column1': [1, 2, 3], 'column2': ['a', 'b', 'c']})
-        >>> pushdb(df, 'my_table', 'my_server', 'my_database', 'dbo','replace')
+        >>> pushdb(df, 'my_table', 'my_server', 'my_database', 'dbo', 'replace')
     """
     # Input validation
     if data.empty:
@@ -47,9 +47,18 @@ def pushdb(data: pd.DataFrame, tablename: str, server: str, database: str, schem
 
     engine = sa.create_engine(connection_url, fast_executemany=True)
 
+    # Start a session to manage transactions
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
     try:
-        data.to_sql(tablename, engine, schema=schema, if_exists=if_exists, index=False)
-    except sa.exc.SQLAlchemyError as e:
-        raise sa.exc.SQLAlchemyError(f"Error pushing data to the database: {str(e)}")
+        # Use the session to handle transactions
+        data.to_sql(tablename, con=engine, schema=schema, if_exists=if_exists, index=False)
+        session.commit()
+        print(f"Data pushed successfully to {database}.{schema}.{tablename}")
+    except SQLAlchemyError as e:
+        session.rollback()
+        raise SQLAlchemyError(f"Error pushing data to the database: {str(e)}")
     finally:
+        session.close()
         engine.dispose()

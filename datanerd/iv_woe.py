@@ -6,8 +6,7 @@ def iv_woe(data, target, bins,optimize,thresold):
     newDF,woeDF,IVDEF,woeDEF = pd.DataFrame(), pd.DataFrame(),pd.DataFrame(),pd.DataFrame()
     cols = data.columns
     for column in cols[~cols.isin([target])]:
-        d1=pd.DataFrame()
-        if optimize==True:
+        if optimize:
             for bin in range(20,0,-1):
                 ivO,woeO=iv_woe(data[[column,target]],target,bins=bin,optimize=False,thresold=0)
                 w=woeO.loc[woeO['Cutoff'] != 'nan']
@@ -54,7 +53,7 @@ def iv_woe(data, target, bins,optimize,thresold):
         woeDF = woeDF.reset_index(drop=True)
         result = woeDF.groupby('Variable').agg({'% of N': ['min', 'max']})
     
-    if optimize==True:
+    if optimize:
         IVDEF=IVDEF.sort_values(by="IV",ascending=False).reset_index(drop=True)
         return IVDEF,woeDEF
     else:
